@@ -163,6 +163,7 @@ class HomeTab(WidgetBase):  # pylint: disable=too-many-instance-attributes
         self.applications = None
         self.app_timers = None
         self.current_prefix = None
+        self._combo_connected = False
 
         self.__applications: typing.Mapping['api_types.ApplicationName', 'api_types.Application'] = {}
         self.__applications_filter: 'ApplicationFilter' = 'all'
@@ -256,10 +257,12 @@ class HomeTab(WidgetBase):  # pylint: disable=too-many-instance-attributes
     def set_environments(self, environments):
         """Setup the environments list."""
         # Disconnect to avoid triggering the signal when updating the content
-        try:
-            self.combo_environment.currentIndexChanged.disconnect()
-        except (TypeError, RuntimeError):
-            pass
+        if self._combo_connected:
+            try:
+                self.combo_environment.currentIndexChanged.disconnect()
+            except (TypeError, RuntimeError):
+                pass
+            self._combo_connected = False
 
         self.combo_environment.clear()
 
@@ -280,6 +283,7 @@ class HomeTab(WidgetBase):  # pylint: disable=too-many-instance-attributes
 
         self.combo_environment.setCurrentIndex(index)
         self.combo_environment.currentIndexChanged.connect(self._environment_selected)
+        self._combo_connected = True
 
         # Fix combobox width
         width = max(widths) + 64
